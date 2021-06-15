@@ -1,0 +1,21 @@
+#ifndef LOGGER_H
+#define LOGGER_H
+
+#include <stdio.h>
+
+#ifdef DEBUG_ON
+    #define DEBUG(...) fprintf(stdout, "D :: %s :: ", __FUNCTION__); fprintf(stdout, __VA_ARGS__); fprintf(stdout, "\n")
+#else
+    #define DEBUG(...)
+#endif
+
+#ifdef DEBUG_OP_ON
+    #define DEBUG_OP(...) printf(__VA_ARGS__)
+#else
+    #define DEBUG_OP(...)
+#endif
+
+
+#define ERROR(...) fprintf(stderr, "\033[1;31mE :: %s :: ", __FUNCTION__); fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n\033[0m")
+
+#endif
