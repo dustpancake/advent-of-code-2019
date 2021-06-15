@@ -1,0 +1,9 @@
+[requires]
+glib/2.68.3
+gtest/1.11.0
+
+[generators]
+make
+
+[options]
+glib:shared=True
