@@ -105,7 +105,7 @@ static long *f_read_bytecode_program(const char *filename, int *len) {
     int digits;
     int index;
     char buf[64];
-    char ch;
+    char ch = 'A';      // initialize with random
     long *arr = NULL;
     FILE *fp;
 
