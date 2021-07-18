@@ -26,8 +26,10 @@
 #define IMMEDIATE_MODE  1
 #define RELATIVE_MODE   2
 
-#define ERROR_CODE -1
-#define SUCCESS_CODE 0
+#define ERROR_CODE     -1
+#define SUCCESS_CODE    0
+#define BLOCK_I_CODE    1
+#define BLOCK_O_CODE    2
 
 // INTERNAL METHODS
 static int opcomp_add(OpComp *oc, pmode_t param_modes);
@@ -129,6 +131,9 @@ void opcomp_free(OpComp *oc) {
     free(oc->prog);
     free(oc->input);
     free(oc->output);
+    oc->prog = NULL;
+    oc->input = NULL;
+    oc->output = NULL;
 }
 
 // METHOD DEFINITIONS
@@ -205,6 +210,19 @@ void opcomp_copy_to_input(OpComp *oc, const opc_t *input, int len) {
     oc->inpp = 0;
 }
 
+void opcomp_single_input(OpComp *oc, opc_t input) {
+    if (oc->inplen != 1) {
+        // free current memory and realloc
+        free(oc->input);
+        oc->input = (opc_t *) malloc(sizeof(opc_t));
+        oc->inplen = 1;
+    }
+    // assign value
+    oc->input[0] = input;
+    // reset input pointer
+    oc->inpp = 0;
+}
+
 void opcomp_reserve_memory(OpComp *oc, int amount) {
     opc_t *arr;
     
@@ -236,6 +254,45 @@ int opcomp_run(OpComp *oc) {
             break;
         }
     }
+    return retval;
+}
+
+int opcomp_run_blocking(OpComp *oc) {
+    opc_t op = 0;
+    int retval = SUCCESS_CODE;
+
+    while (oc->ip < oc->plen) {
+        op = oc->prog[oc->ip];
+
+        // break on I
+        if (op % 10 == INP) {
+            DEBUG_OP("::INPUT PAUSED \n");
+            retval = BLOCK_I_CODE;
+            break;
+        }
+
+        retval = opcomp_handle_operation(oc, op);
+
+        if (retval < SUCCESS_CODE) {
+            break;
+        }
+    }
+
+    return retval;
+}
+
+int opcomp_run_continue(OpComp *oc) {
+    int retval = SUCCESS_CODE;
+    opc_t op = oc->prog[oc->ip];
+
+    // handle last blocked operation
+    retval = opcomp_handle_operation(oc, op);
+
+    if (retval < SUCCESS_CODE) {
+        ERROR("Error continuing.");
+        return ERROR_CODE;
+    }
+
     return retval;
 }
 

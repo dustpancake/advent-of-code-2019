@@ -42,6 +42,8 @@ void opcomp_free(OpComp *oc);
 // METHODS
 int opcomp_handle_operation(OpComp *oc, opc_t op);
 int opcomp_run(OpComp *oc);
+int opcomp_run_blocking(OpComp *oc); // stop on I/O operations
+int opcomp_run_continue(OpComp *oc);
 void opcomp_reset(OpComp *oc);
 
 void opcomp_print_prog(OpComp oc);
@@ -53,6 +55,7 @@ void opcomp_clear_output(OpComp *oc);
 void opcomp_reserve_output(OpComp *oc, int len);
 
 void opcomp_copy_to_input(OpComp *oc, const opc_t *input, int len);
+void opcomp_single_input(OpComp *oc, opc_t input);
 
 void opcomp_reserve_memory(OpComp *oc, int amount);
 
