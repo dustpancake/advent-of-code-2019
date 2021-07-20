@@ -26,11 +26,6 @@
 #define IMMEDIATE_MODE  1
 #define RELATIVE_MODE   2
 
-#define ERROR_CODE     -1
-#define SUCCESS_CODE    0
-#define BLOCK_I_CODE    1
-#define BLOCK_O_CODE    2
-
 // INTERNAL METHODS
 static int opcomp_add(OpComp *oc, pmode_t param_modes);
 static int opcomp_mult(OpComp *oc, pmode_t param_modes);
@@ -81,6 +76,8 @@ OpComp opcomp_new() {
 
         .ip         = 0,
         .rbo        = 0,
+
+        .interrupts = 0
     };
     return oc;
 }
@@ -102,7 +99,9 @@ OpComp opcomp_copy(const OpComp oc) {
         .memsize = oc.memsize,
 
         .ip = oc.ip,
-        .rbo = oc.rbo
+        .rbo = oc.rbo,
+
+        .interrupts = oc.interrupts
     };
 
     // copy memory
@@ -186,6 +185,11 @@ void opcomp_clear_output(OpComp *oc) {
 }
 
 void opcomp_reserve_output(OpComp *oc, int len) {
+    // if we already have enough output, do nothing
+    if (oc->outlen == len) {
+        return;
+    }
+    
     if (oc->output != NULL) {
         free(oc->output);
     }
@@ -241,6 +245,14 @@ void opcomp_reserve_memory(OpComp *oc, int amount) {
     oc->memsize = amount;
 }
 
+void opcomp_set_interrupt(OpComp *oc, int sig) {
+    oc->interrupts = sig;
+}
+
+void opcomp_clear_interrupts(OpComp *oc) { 
+    oc->interrupts = SET_INT_NONE;
+}
+
 // RUNTIME
 int opcomp_run(OpComp *oc) {
     opc_t op = 0;
@@ -248,6 +260,30 @@ int opcomp_run(OpComp *oc) {
 
     while (oc->ip < oc->plen) {
         op = oc->prog[oc->ip];
+
+        if (oc->interrupts) {
+            // check if we need to return
+            switch (op % 10) {
+            case INP:
+                if (oc->interrupts & SET_INT_INP) {
+                    DEBUG_OP("\n::INPUT INTERRUPT");
+                    return HALT_ON_INP;
+                }
+                break;
+            
+            case OUT:
+                if (oc->interrupts & SET_INT_OUT) {
+                    DEBUG_OP("\n::OUTPUT INTERRUPT");
+                    return HALT_ON_OUT;
+                }
+                break;
+
+            default:
+                // no interrupts
+                break;
+            }
+        }
+
         retval = opcomp_handle_operation(oc, op);
         
         if (retval < SUCCESS_CODE) {
@@ -257,31 +293,7 @@ int opcomp_run(OpComp *oc) {
     return retval;
 }
 
-int opcomp_run_blocking(OpComp *oc) {
-    opc_t op = 0;
-    int retval = SUCCESS_CODE;
-
-    while (oc->ip < oc->plen) {
-        op = oc->prog[oc->ip];
-
-        // break on I
-        if (op % 10 == INP) {
-            DEBUG_OP("::INPUT PAUSED \n");
-            retval = BLOCK_I_CODE;
-            break;
-        }
-
-        retval = opcomp_handle_operation(oc, op);
-
-        if (retval < SUCCESS_CODE) {
-            break;
-        }
-    }
-
-    return retval;
-}
-
-int opcomp_run_continue(OpComp *oc) {
+int opcomp_continue(OpComp *oc) {
     int retval = SUCCESS_CODE;
     opc_t op = oc->prog[oc->ip];
 

@@ -40,13 +40,13 @@ int pb_step(PaintBot *pb) {
     opcomp_single_input(pb->oc, (opc_t) pv);
 
     // consume input
-    retval = opcomp_run_continue(pb->oc);
+    retval = opcomp_continue(pb->oc);
     if (retval < SUCCESS_CODE) {
         return retval;
     }
 
     // run until next input
-    retval = opcomp_run_blocking(pb->oc);
+    retval = opcomp_run(pb->oc);
     if (retval < SUCCESS_CODE) {
         return retval;
     }
@@ -69,11 +69,12 @@ int pb_run(PaintBot *pb) {
     int retval = SUCCESS_CODE;
     int count = 0;
 
+    // set the right interrupts: input
+    opcomp_set_interrupt(pb->oc, SET_INT_INP);
+
     while (retval == SUCCESS_CODE) {
         DEBUG_BOT("\nTURN %d:\n", ++count);
         retval = pb_step(pb);
-
-//        if (count > 100) break;
     }
 
     return retval;

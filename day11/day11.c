@@ -17,55 +17,52 @@ int count_panels(PanelFloor pf) {
     return count;
 }
 
-void part1() {
-    printf("\n\n");
-    int retval;
-    PanelFloor pf = pf_new(1024, 1024);
-    OpComp oc = comp_from_file("input.txt");
-
-    PaintBot pb = pb_new(&oc, &pf);
-
-    opcomp_reserve_memory(&oc, 2048 - oc.plen);
-    opcomp_reserve_output(&oc, 2);
-
-    printf("Bot Initialized.\n");
-    printf("Floor size %d, %d\n", pf.width, pf.height);
-
-    retval = pb_run(&pb);
-    printf("Bot returned %d\n", retval);
-    printf("Bot painted %d\n", count_panels(pf));
-
-    pb_free(&pb);
-    opcomp_free(&oc);
-    pf_free(&pf);
-    return 0;
-}
-
 int main() {
     printf("\n\n");
     int retval;
-    PanelFloor pf = pf_new(128, 32);
-    OpComp oc = comp_from_file("input.txt");
 
-    PaintBot pb = pb_new(&oc, &pf);
+    PanelFloor pf1 = pf_new(1024, 1024);
+    PanelFloor pf2 = pf_new(45, 16);
+
+    // create bot
+    OpComp oc1 = comp_from_file("input.txt");
+    opcomp_reserve_memory(&oc1, 2048 - oc1.plen);
+    opcomp_reserve_output(&oc1, 2);
+
+    // copy for part 2
+    OpComp oc2 = opcomp_copy(oc1);
+
+    // create paint bots
+    PaintBot pb1 = pb_new(&oc1, &pf1);
+    PaintBot pb2 = pb_new(&oc2, &pf2);
+
+    // part 1
+    retval = pb_run(&pb1);
+    printf("Part1: Bot returned %d\n", retval);
+    printf("Part1: Bot painted %d\n", count_panels(pf1));
+
+
+    // part 2
+    // move starting loc on grid
+    PB_SET_LOC((&pb2), 2, 2);
+
     // start on white
-    PF_SET_PANEL((&pf), pb.x, pb.y, 1);
+    PF_SET_PANEL((&pf2), pb2.x, pb2.y, 1);
 
-    opcomp_reserve_memory(&oc, 2048 - oc.plen);
-    opcomp_reserve_output(&oc, 2);
-
-    printf("Bot Initialized.\n");
-    printf("Floor size %d, %d\n", pf.width, pf.height);
-
-    retval = pb_run(&pb);
-    printf("Bot returned %d\n", retval);
+    retval = pb_run(&pb2);
+    printf("Part2: Bot returned %d\n", retval);
 
     // reveal
-    pf_visualize(pf);
+    pf_visualize(pf2);
 
-    pb_free(&pb);
-    opcomp_free(&oc);
-    pf_free(&pf);
+    // free memory
+    pb_free(&pb2);
+    pb_free(&pb1);
+    opcomp_free(&oc2);
+    opcomp_free(&oc1);
+    pf_free(&pf2);
+    pf_free(&pf1);
+
     return 0;
 }
 

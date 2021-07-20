@@ -308,6 +308,7 @@ TEST_F(OpCompTest, Day5TProg2) {
   EXPECT_TRUE(prog_is({1101, 100, -1, 4, 99}));
 }
 
+// Takes input and puts it in output
 TEST_F(OpCompTest, IOTest) {
   load_prog({3, 0, 4, 0, 99});
 
@@ -606,3 +607,64 @@ TEST_F(OpCompTest, Day9TProg2) {
   ASSERT_EQ(std::to_string(abs(oc.output[0])).length(), 16);
 }
 
+TEST_F(OpCompTest, SetClearInterrupt) {
+  opcomp_set_interrupt(&oc, SET_INT_INP);
+
+  ASSERT_EQ(SET_INT_INP, oc.interrupts);
+
+  opcomp_clear_interrupts(&oc);
+
+  ASSERT_EQ(0, oc.interrupts);
+}
+
+/*
+  Interrupt tests:
+  Block on I/O operations. Program takes input and puts in output.
+*/
+TEST_F(OpCompTest, IntInput) {
+  load_prog({3, 0, 4, 0, 99});
+  
+  opcomp_reserve_output(&oc, 1);
+  opcomp_single_input(&oc, 15);
+
+  opcomp_set_interrupt(&oc, SET_INT_INP);
+
+  int retval = opcomp_run(&oc);
+
+  ASSERT_EQ(retval, HALT_ON_INP);
+  ASSERT_EQ(oc.inpp, 0);  // should not be modified yet
+
+  retval = opcomp_continue(&oc);
+
+  ASSERT_EQ(retval, 0);
+  ASSERT_EQ(oc.inpp, 1);  // should be modified now
+
+  retval = opcomp_run(&oc);
+
+  ASSERT_EQ(retval, -99);
+  ASSERT_EQ(oc.output[0], 15);
+}
+
+TEST_F(OpCompTest, IntOutput) {
+  load_prog({3, 0, 4, 0, 99});
+  
+  opcomp_reserve_output(&oc, 1);
+  opcomp_single_input(&oc, 15);
+
+  opcomp_set_interrupt(&oc, SET_INT_OUT);
+
+  int retval = opcomp_run(&oc);
+
+  
+  ASSERT_EQ(retval, HALT_ON_OUT);
+  ASSERT_EQ(oc.output[0], 0);   // should not be modified yet
+
+  retval = opcomp_continue(&oc);
+
+  ASSERT_EQ(retval, 0);
+  ASSERT_EQ(oc.output[0], 15);  // should be modified now
+
+  retval = opcomp_run(&oc);
+
+  ASSERT_EQ(retval, -99);
+}

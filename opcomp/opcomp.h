@@ -4,6 +4,18 @@
 #include <inputio.h>
 #include <logger.h>
 
+// RETURN CODES
+#define ERROR_CODE     -1
+#define SUCCESS_CODE    0
+
+#define HALT_ON_INP     5
+#define HALT_ON_OUT     6
+
+// INTERRUPTS
+#define     SET_INT_NONE    0
+#define     SET_INT_INP     1
+#define     SET_INT_OUT     2
+
 // TYPE DEFS
 typedef u_int32_t pmode_t;
 typedef long opc_t;
@@ -27,6 +39,9 @@ struct opcomp {
 
     int     ip;         // instruction pointer
     int     rbo;        // relative base offset pointer
+
+    // interrupts
+    int     interrupts;
 };
 
 typedef struct opcomp OpComp;
@@ -41,10 +56,16 @@ void opcomp_free(OpComp *oc);
 
 // METHODS
 int opcomp_handle_operation(OpComp *oc, opc_t op);
+
+// run until halt or interrupt
 int opcomp_run(OpComp *oc);
-int opcomp_run_blocking(OpComp *oc); // stop on I/O operations
-int opcomp_run_continue(OpComp *oc);
+// run next command without interrupt
+int opcomp_continue(OpComp *oc);
+
 void opcomp_reset(OpComp *oc);
+
+void opcomp_set_interrupt(OpComp *oc, int sig);
+void opcomp_clear_interrupts(OpComp *oc);
 
 void opcomp_print_prog(OpComp oc);
 void opcomp_print_output(OpComp oc);
