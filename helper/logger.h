@@ -4,9 +4,9 @@
 #include <stdio.h>
 
 
-#define DEBUG_BOT_ON
+// #define DEBUG_BOT_ON
 // #define DEBUG_OP_ON
-
+// #define DEBUG_ON
 
 #ifdef DEBUG_ON
     #define DEBUG(...) fprintf(stdout, "D :: %s :: ", __FUNCTION__); fprintf(stdout, __VA_ARGS__); fprintf(stdout, "\n")

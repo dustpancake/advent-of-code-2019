@@ -5,7 +5,7 @@ export CFLAGS
 CXXFLAGS	?= --std=c++2a -O2
 export CXXFLAGS
 
-all: day01 day02 day05 day09
+all: day01 day02 day05 day09 day11 day13
 
 day%: pre-build
 	$(MAKE) -C $@
@@ -26,3 +26,5 @@ clean:
 	$(MAKE) -C day02 clean
 	$(MAKE) -C day05 clean
 	$(MAKE) -C day09 clean
+	$(MAKE) -C day11 clean
+	$(MAKE) -C day13 clean
