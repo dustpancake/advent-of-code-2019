@@ -43,6 +43,9 @@ ArcControl acont_new() {
 }
 
 int acont_get_next_input(ArcControl *acont, const ArcWorld *aw) {
+
+    // aw_visualise(*aw);
+    
     // dispatch between ai methods or human here
     // only AI at the moment
     return acont_ai_next_intput(acont, aw);
