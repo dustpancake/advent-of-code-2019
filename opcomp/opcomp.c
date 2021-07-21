@@ -246,7 +246,11 @@ void opcomp_reserve_memory(OpComp *oc, int amount) {
 }
 
 void opcomp_set_interrupt(OpComp *oc, int sig) {
-    oc->interrupts = sig;
+    if (sig == SET_INT_NONE) {
+        oc->interrupts = SET_INT_NONE;   
+    } else {
+        oc->interrupts = oc->interrupts | sig;
+    }
 }
 
 void opcomp_clear_interrupts(OpComp *oc) { 
@@ -266,14 +270,14 @@ int opcomp_run(OpComp *oc) {
             switch (op % 10) {
             case INP:
                 if (oc->interrupts & SET_INT_INP) {
-                    DEBUG_OP("\n::INPUT INTERRUPT");
+                    DEBUG_OP("\n::INPUT INTERRUPT\n\n");
                     return HALT_ON_INP;
                 }
                 break;
             
             case OUT:
                 if (oc->interrupts & SET_INT_OUT) {
-                    DEBUG_OP("\n::OUTPUT INTERRUPT");
+                    DEBUG_OP("\n::OUTPUT INTERRUPT\n\n");
                     return HALT_ON_OUT;
                 }
                 break;
